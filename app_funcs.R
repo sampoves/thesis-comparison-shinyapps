@@ -4,7 +4,7 @@
 
 # "Parking of private cars and spatial accessibility in Helsinki Capital Region"
 # by Sampo Vesanen
-# 25.6.2020
+# 27.6.2020
 
 
 
@@ -52,10 +52,11 @@ CreateJenksColumn_b <- function(fortified, inputDf, datacol, newcolname,
     classInt::classIntervals(inputDf[, datacol], n = classes_n, style = "equal"))
   
   # classes$brk has to be wrapped with unique(), otherwise we can't get more
-  # than six classes for parktime_median or walktime_median
+  # than six classes for parktime_median or walktime_median. Make note that 
+  # breaks are rounded to two decimal places.
   result <- fortified %>%
     dplyr::mutate(!!newcolname := cut(!!rlang::sym(datacol), 
-                                      unique(classes$brks), 
+                                      round(unique(classes$brks), 2), 
                                       include.lowest = T))
   return(result)
 }
@@ -73,8 +74,10 @@ AddLevelCounts <- function(thisDf, datacol, newcolname, classes_n,
   intervals <- suppressWarnings(
     classInt::classIntervals(thisDf[, datacol], n = classes_n, style = "equal"))
   
-  interv_codes <- cut(thisDf[, datacol], unique(intervals$brks),
-                     include.lowest = T)
+  # Breaks are rounded to two decimal places
+  interv_codes <- cut(thisDf[, datacol], 
+                      round(unique(intervals$brks), 2),
+                      include.lowest = T)
   input_levels <- levels(thisDf[, newcolname])
   
   # Create level appearance count in this clunky way.
@@ -120,7 +123,7 @@ GetLegendName <- function(val, originzip) {
   # thisUnit is minutes, except when datasource is "compare" or 
   # description "_pct"
   if (grepl("compare_", val) || grepl("_pct", val)) {
-    thisUnit <- "(unit %)"
+    thisUnit <- "(unit percent, where 1 = 100 %)"
   } else {
     thisUnit <- "(unit minutes)"
   }
@@ -174,7 +177,6 @@ GetLegendName <- function(val, originzip) {
                   timeofday, sep = "")
   return(result)
 }
-
 
 
 GetCentroids <- function(fortified, unique_id, nominator) {

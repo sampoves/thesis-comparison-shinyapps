@@ -2,7 +2,7 @@
 # Helsinki Region Travel Time comparison application
 # Helsinki Region Travel Time Matrix 2018 <--> My thesis survey results
 
-# 25.6.2020
+# 27.6.2020
 # Sampo Vesanen
 
 
@@ -30,7 +30,7 @@ library(rlang)
 
 
 # App version
-app_v <- "0049.postal (25.6.2020)"
+app_v <- "0050.postal (27.6.2020)"
 
 # Data directories
 munspath <- "appdata/hcr_muns.shp"
@@ -228,13 +228,15 @@ thesisdata[, -1] <- data.frame(
 
 #### 2.6 Water and roads -------------------------------------------------------
 
-# # Digiroad
+# # Main roads
 roads_f <-
   rgdal::readOGR(roadpath, stringsAsFactors = TRUE) %>%
   sp::spTransform(., app_crs) %>%
   ggplot2::fortify(.)
 
-# UA2012 inland water
+# UA2012 inland water. Using geom_spatial_polygon() from ggspatial would fix
+# the island in Saarijärvi, Espoo, but shinyapps.io does not like the ggspatial
+# dependency lwgeom.
 water_f <-
   rgdal::readOGR(waterpath, stringsAsFactors = TRUE) %>%
   sp::spTransform(., app_crs) %>%
@@ -395,9 +397,9 @@ server <- function(input, output, session) {
       dplyr::mutate(ttm_r_drivetime = ttm_r_avg - ttm_sfp - ttm_wtd,
                     ttm_m_drivetime = ttm_m_avg - ttm_sfp - ttm_wtd,
                     ttm_sl_drivetime = ttm_sl_avg - ttm_sfp - ttm_wtd,
-                    ttm_r_pct = (ttm_sfp + ttm_wtd) / ttm_r_drivetime,
-                    ttm_m_pct = (ttm_sfp + ttm_wtd) / ttm_m_drivetime,
-                    ttm_sl_pct = (ttm_sfp + ttm_wtd) / ttm_sl_drivetime) %>%
+                    ttm_r_pct = (ttm_sfp + ttm_wtd) / ttm_r_avg,
+                    ttm_m_pct = (ttm_sfp + ttm_wtd) / ttm_m_avg,
+                    ttm_sl_pct = (ttm_sfp + ttm_wtd) / ttm_sl_avg) %>%
       dplyr::mutate_at(vars(ttm_r_pct, ttm_m_pct, ttm_sl_pct), ~round(., 2)) %>%
       
       # If zipcode is NA, then convert all calculated data to NA as well
@@ -602,7 +604,6 @@ server <- function(input, output, session) {
       g <- g + geom_path(data = roads_f,
                          aes(long, lat, group = group),
                          color = "#757575",
-                         fill = NA,
                          size = 0.9)
     }
     
