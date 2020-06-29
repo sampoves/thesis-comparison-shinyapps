@@ -2,7 +2,7 @@
 // JavaScript for the travel time comparison app of my thesis results
 
 // "Parking of private cars and spatial accessibility in Helsinki Capital Region" 
-// by Sampo Vesanen, 17.6.2020
+// by Sampo Vesanen, 29.6.2020
 
 
 
@@ -45,8 +45,6 @@ $(function() {
 		}
 	});
 });
-
-
 
 // ----------------------- //
 // SidebarPanel operations //
@@ -321,3 +319,60 @@ $(document).on('shiny:idle', function(event) {
 		$('.travelchain').removeClass('fillcol-warning');
 	}
 });
+
+
+
+// --------------------------- //
+// Multi-part SVG highlighting //
+// --------------------------- //
+
+// CSS has been defined so that highlighting works for onepart polygons. To reduce
+// confusion about multipart polygons (zipcode areas), run this code.
+$(document).on('shiny:idle', function(event) {
+	
+	// Give SVG polygons attribute "name"
+	setTimeout(function() {
+		var pols = $('polygon[id^="svg_"]');
+
+		for(var i = 0; i < pols.length; i++) {
+			try {
+				var cleantitle = clean(pols[i].attributes.title.textContent);
+				pols[i].setAttribute("name", cleantitle);
+			} catch (error) {
+				continue;
+			}
+		};
+	}, 3000);
+	
+	// The predetermined postal code areas are multipart. Add events for these postal
+	// code areas.
+	setTimeout(function() {
+		
+		var arr = ["00190", "00200", "00250", "00330", "00340", "00570", "00830", "00890", "02100", "02380"];
+		
+		arr.forEach(function (value) {
+			var $var = $('polygon[name="' + value +'"]');
+			$var.mouseenter(function() {
+				$var.css("fill", "#8950a1");
+			}).mouseleave(function() {
+				$var.removeAttr('style');
+			});
+		});
+	}, 3100);
+});
+
+// a script to pop up the selected svg polygon. Works but it is messy. Comment it, maybe
+// delete later.
+/* $(document).on('shiny:idle', function(event) {
+	
+	setTimeout(function() {
+		
+		$('polygon[id^="svg_"]').mouseenter(function() {
+			SVG($(this)[0]).front();
+		}).mouseleave(function(){
+			$('polyline').each(function(i, el) {
+				SVG(el).front();
+			})
+		});
+	}, 3000);
+}); */

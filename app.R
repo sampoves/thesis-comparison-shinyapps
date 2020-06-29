@@ -2,7 +2,7 @@
 # Helsinki Region Travel Time comparison application
 # Helsinki Region Travel Time Matrix 2018 <--> My thesis survey results
 
-# 27.6.2020
+# 30.6.2020
 # Sampo Vesanen
 
 
@@ -30,7 +30,7 @@ library(rlang)
 
 
 # App version
-app_v <- "0050.postal (27.6.2020)"
+app_v <- "0052.postal (30.6.2020)"
 
 # Data directories
 munspath <- "appdata/hcr_muns.shp"
@@ -340,8 +340,12 @@ server <- function(input, output, session) {
     
     # the div id='abbr-info' is loaded in "6.4 ShinyApp header", the div itself 
     # is the separate html file indicated in variable "info_path". Dialog 
-    # window properties are located in .js
-    shinyjs::runjs("$('#abbr-info').dialog('open');")
+    # window properties are located in .js.
+    # NB! This contains a brutish solution to the dialog content jumping straight
+    # to bottom on open. Wait 310 ms (tested to be approx. lowest duration for
+    # this to work) after opening dialog, then jQuery scrollTop()
+    shinyjs::runjs("$('#abbr-info').dialog('open');
+                   setTimeout(function() {$('#abbr-info').scrollTop(0);}, 310);")
   })
   
   # Validate ykr-id in the numeric field
@@ -350,9 +354,9 @@ server <- function(input, output, session) {
     # %then% allows only one error message at a time
     shiny::validate(
       shiny::need(!is.na(as.numeric(input$zipcode)), "Can't contain letters") %then%
-        shiny::need(nchar(input$zipcode) == 5, "Five digits pls") %then%
-        shiny::need(input$zipcode %in% unique(ykrid_zipcodes$zipcode), 
-                    "Not a valid postal code")
+      shiny::need(nchar(input$zipcode) == 5, "Five digits pls") %then%
+      shiny::need(input$zipcode %in% unique(ykrid_zipcodes$zipcode), 
+                  "Not a valid postal code")
     )
     input$zipcode
   })
@@ -784,12 +788,13 @@ ui <- shinyUI(
     
     
     ### 5.5 Sidebar layout -----------------------------------------------------
-    titlePanel(NULL, windowTitle = "Sampo Vesanen's thesis: Travel time comparison"),
+    titlePanel(NULL, 
+               windowTitle = "Sampo Vesanen's thesis: Private car travel time comparison in Helsinki Capital Region"),
     sidebarLayout(
       sidebarPanel(
         id = "sidebar",
         
-        HTML("<label class='control-label'>Travel chain origin</label>",
+        HTML("<label class='control-label'>Private car travel chain origin</label>",
              "<div class='travelchain' id='contents'>",
              "<div id='zip-flash'>"),
         textInput(
