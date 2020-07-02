@@ -2,7 +2,7 @@
 # Helsinki Region Travel Time comparison application
 # Helsinki Region Travel Time Matrix 2018 <--> My thesis survey results
 
-# 30.6.2020
+# 3.7.2020
 # Sampo Vesanen
 
 
@@ -30,7 +30,7 @@ library(rlang)
 
 
 # App version
-app_v <- "0052.postal (30.6.2020)"
+app_v <- "0056.postal (3.7.2020)"
 
 # Data directories
 munspath <- "appdata/hcr_muns.shp"
@@ -939,6 +939,10 @@ ui <- shinyUI(
           inputId = "info_dialog_btn",
           label = HTML("<i class='icon info' title='Open tooltip abbreviations legend dialog'></i>")),
         HTML("</div>"),
+        
+        HTML("<div class='loadingdiv'>",
+             "Loading map view. Once finished, see <i class='icon info'></i> for more information.",
+             "</div>"),
         
         girafeOutput("researcharea"), 
         
