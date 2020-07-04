@@ -2,7 +2,7 @@
 # Helsinki Region Travel Time comparison application
 # Helsinki Region Travel Time Matrix 2018 <--> My thesis survey results
 
-# 3.7.2020
+# 4.7.2020
 # Sampo Vesanen
 
 
@@ -30,7 +30,7 @@ library(rlang)
 
 
 # App version
-app_v <- "0056.postal (3.7.2020)"
+app_v <- "0057.postal (4.7.2020)"
 
 # Data directories
 munspath <- "appdata/hcr_muns.shp"
@@ -447,7 +447,9 @@ server <- function(input, output, session) {
                       if_else(is.na(thesis_sl_sfp), 0, thesis_sl_sfp) + 
                         if_else(is.na(thesis_sl_wtd), 0, thesis_sl_wtd)) / ttm_sl_avg) %>%
       
-      dplyr::mutate_at(vars(thesis_r_pct, thesis_m_pct, thesis_sl_pct), 
+      dplyr::mutate_at(vars(thesis_r_drivetime, thesis_m_drivetime, 
+                            thesis_sl_drivetime, thesis_r_pct, thesis_m_pct, 
+                            thesis_sl_pct), 
                        ~round(., 2)) %>%
       
       # Add TTM18/thesis comparison columns
