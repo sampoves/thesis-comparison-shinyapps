@@ -2,7 +2,7 @@
 # Helsinki Region Travel Time comparison application
 # Helsinki Region Travel Time Matrix 2018 <--> My thesis survey results
 
-# 4.7.2020
+# 5.7.2020
 # Sampo Vesanen
 
 
@@ -30,7 +30,7 @@ library(rlang)
 
 
 # App version
-app_v <- "0057.postal (4.7.2020)"
+app_v <- "0059.postal (5.7.2020)"
 
 # Data directories
 munspath <- "appdata/hcr_muns.shp"
@@ -361,16 +361,30 @@ server <- function(input, output, session) {
     input$zipcode
   })
   
-  # Print helpful text for the user
+  # helper_output_zip() and helper_output_symbology(): Print helpful text for 
+  # the user
   helper_output_zip <- shiny::reactive({
     
     inputdata <- thisTTM()
     thisVal <- inputdata[inputdata$zipcode == validate_zipcode(), ][1, ]
     help_output <- paste(
-      "<p style='margin: 0 0 0px;'>",
+      "<p class='helper-div'>",
       "<b>Current origin postal code area:</b><br>",
+      "<i class='icon hourglass-start'></i>",
       thisVal[["zipcode"]], " ", thisVal[["nimi"]],
       "</p>", sep = "")
+    
+    help_output
+  })
+  
+  helper_output_symbology <- shiny::reactive({
+    
+    thisVal <- GetSymbologyHelp(input$fill_column)
+    help_output <- paste(
+      "<div class='helper-div'>",
+      "<b>Current symbology selection key:</b><br>",
+      thisVal,
+      "</div>", sep = "")
     
     help_output
   })
@@ -760,9 +774,14 @@ server <- function(input, output, session) {
   
   #### 5.2.2 Other outputs -----------------------------------------------------
   
-  # Helps user understand where their ykr_id is located
+  # Helps user understand where their ykr_id is located and what the symbology 
+  # column name means
   output$zip_helper <- renderText({
     helper_output_zip()
+  })
+  
+  output$sym_helper <- renderText({
+    helper_output_symbology()
   })
 }
 
@@ -837,6 +856,10 @@ ui <- shinyUI(
                 "compare_r_wtd", "compare_m_wtd", "compare_sl_wtd",
                 "compare_r_drivetime", "compare_m_drivetime", "compare_sl_drivetime",
                 "compare_r_pct", "compare_m_pct", "compare_sl_pct"))),
+        
+        HTML("<div id='contents'>"),
+        htmlOutput("sym_helper"),
+        HTML("</div>"),
         
         sliderInput(
           inputId = "classIntervals_n",
