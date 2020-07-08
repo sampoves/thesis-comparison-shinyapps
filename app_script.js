@@ -2,7 +2,7 @@
 // JavaScript for the travel time comparison app of my thesis results
 
 // "Parking of private cars and spatial accessibility in Helsinki Capital Region" 
-// by Sampo Vesanen, 7.7.2020
+// by Sampo Vesanen, 9.7.2020
 
 
 
@@ -139,7 +139,7 @@ $(document).on('shiny:idle', function(event) {
 				delta = e0.wheelDelta || -e0.detail;
 			
 			// Use the delta value of the current svg to scroll #app-tooltip. This produces
-			// a clammy scrolling experience, but it works. 
+			// a sticky scrolling experience, but it works. 
 			var scrollThis = document.getElementById('app-tooltip');
 			scrollThis.scrollTop += (delta < 0 ? 1 : -1) * 120;
 			

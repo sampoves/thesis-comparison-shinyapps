@@ -2,7 +2,7 @@
 # Helsinki Region Travel Time comparison application
 # Helsinki Region Travel Time Matrix 2018 <--> My thesis survey results
 
-# 7.7.2020
+# 9.7.2020
 # Sampo Vesanen
 
 
@@ -30,7 +30,7 @@ library(rlang)
 
 
 # App version
-app_v <- "0060.postal (7.7.2020)"
+app_v <- "0061.postal (9.7.2020)"
 
 # Data directories
 munspath <- "appdata/hcr_muns.shp"
@@ -953,7 +953,7 @@ ui <- shinyUI(
         width = 1),
       
       
-      ### 5.6 Mainpanel layout -------------------------------------------------
+      ### 5.6 mainPanel layout -------------------------------------------------
       mainPanel(
         
         HTML("<div class='rightside-toolbar'>"),
