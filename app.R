@@ -2,7 +2,7 @@
 # Helsinki Region Travel Time comparison application
 # Helsinki Region Travel Time Matrix 2018 <--> My thesis survey results
 
-# 19.7.2020
+# 30.7.2020
 # Sampo Vesanen
 
 # Known issues:
@@ -38,7 +38,7 @@ library(rlang)
 
 
 # App version
-app_v <- "0062.postal (19.7.2020)"
+app_v <- "0063.postal (30.7.2020)"
 
 # Data directories
 munspath <- "appdata/hcr_muns.shp"
@@ -444,29 +444,29 @@ server <- function(input, output, session) {
       
       # Add the rest of thesis_ columns. with if_else() change possible NA's to 
       # zeros so that calculations are not rendered NA
-      dplyr::mutate(thesis_r_drivetime = ttm_r_avg - 
+      dplyr::mutate(thesis_r_drivetime = ttm_r_drivetime - 
                       if_else(is.na(thesis_r_sfp), 0, thesis_r_sfp) - 
                       if_else(is.na(thesis_r_wtd), 0, thesis_r_wtd),
                     
-                    thesis_m_drivetime = ttm_m_avg - 
+                    thesis_m_drivetime = ttm_m_drivetime - 
                       if_else(is.na(thesis_m_sfp), 0, thesis_m_sfp) - 
                       if_else(is.na(thesis_m_wtd), 0, thesis_m_wtd),
                     
-                    thesis_all_drivetime = ttm_all_avg - 
+                    thesis_all_drivetime = ttm_all_drivetime - 
                       if_else(is.na(thesis_all_sfp), 0, thesis_all_sfp) - 
                       if_else(is.na(thesis_all_wtd), 0, thesis_all_wtd),
                     
                     thesis_r_pct = (
                       if_else(is.na(thesis_r_sfp), 0, thesis_r_sfp) + 
-                        if_else(is.na(thesis_r_wtd), 0, thesis_r_wtd)) / ttm_r_avg,
+                        if_else(is.na(thesis_r_wtd), 0, thesis_r_wtd)) / ttm_r_drivetime,
                     
                     thesis_m_pct = (
                       if_else(is.na(thesis_m_sfp), 0, thesis_m_sfp) + 
-                        if_else(is.na(thesis_m_wtd), 0, thesis_m_wtd)) / ttm_m_avg,
+                        if_else(is.na(thesis_m_wtd), 0, thesis_m_wtd)) / ttm_m_drivetime,
                     
                     thesis_all_pct = (
                       if_else(is.na(thesis_all_sfp), 0, thesis_all_sfp) + 
-                        if_else(is.na(thesis_all_wtd), 0, thesis_all_wtd)) / ttm_all_avg) %>%
+                        if_else(is.na(thesis_all_wtd), 0, thesis_all_wtd)) / ttm_all_drivetime) %>%
       
       dplyr::mutate_at(vars(thesis_r_drivetime, thesis_m_drivetime, 
                             thesis_all_drivetime, thesis_r_pct, thesis_m_pct, 
@@ -916,7 +916,7 @@ ui <- shinyUI(
         selectInput(
           inputId = "postal_label_choice",
           label = NULL,
-          selected = "Off",
+          selected = "Current symbology",
           choices = c("Off", "Postal codes", "Current symbology")),
         HTML("</div>"),
         
