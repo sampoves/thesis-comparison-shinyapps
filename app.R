@@ -2,7 +2,7 @@
 # Helsinki Region Travel Time comparison application
 # Helsinki Region Travel Time Matrix 2018 <--> My thesis survey results
 
-# 1.9.2020
+# 26.9.2020
 # Sampo Vesanen
 
 # Known issues:
@@ -11,6 +11,10 @@
 #   shinyapps.io because the platform does not like ggpspatial dependency lwgeom 
 #   for whatever reason.
 # - postal_labels_choice does not scale with window size
+# - Of minor importance: The JavaScript additions to dropdown menus are quite
+#   shoddy. User can see that they are added each time menu opens. Also, fill
+#   icons in "color scheme" menu do not appear on the first opening. In fact,
+#   they only appear after first opening "visualise data" menu once.
 # - There is a rare issue where the application complains about non-unique 
 #   breaks. This occurs inside CreateJenksColumn_b(), where a column presumably
 #   does not have enough unique values to create the amount of symbology classes
@@ -46,7 +50,7 @@ library(rlang)
 
 
 # App version
-app_v <- "0065.postal (1.9.2020)"
+app_v <- "0066.postal (26.9.2020)"
 
 # Data directories
 munspath <- "appdata/hcr_muns.shp"
@@ -349,7 +353,7 @@ server <- function(input, output, session) {
   # Launch tooltip legend jQuery UI dialog
   shiny::observeEvent(input$info_dialog_btn, {
     
-    # the div id='abbr-info' is loaded in "6.4 ShinyApp header", the div itself 
+    # The div id='abbr-info' is loaded in "6.4 ShinyApp header", the div itself 
     # is the separate html file indicated in variable "info_path". Dialog 
     # window properties are located in .js.
     # NB! This contains a brutish solution to the dialog content jumping straight
@@ -359,13 +363,15 @@ server <- function(input, output, session) {
                    setTimeout(function() {$('#abbr-info').scrollTop(0);}, 310);")
   })
   
-  # this reactive object is created to enable listening of multiple inputs user
+  
+  # This reactive object is created to enable listening of multiple inputs user
   # can trigger. Triggering an input may require lowering the classes breaks
   # inside the function CreateJenksColumn_b(), otherwise we will get an error
   # ""
   checkSliderInput <- reactive({
     list(input$classIntervals_n, input$calcZip, input$fill_column)
   })
+  
   
   shiny::observeEvent(checkSliderInput(), {
     
@@ -389,6 +395,7 @@ server <- function(input, output, session) {
     }
   })
   
+  
   # Validate ykr-id in the numeric field
   validate_zipcode <- shiny::eventReactive(input$calcZip, {
     
@@ -401,6 +408,7 @@ server <- function(input, output, session) {
     )
     input$zipcode
   })
+  
   
   # helper_output_zip() and helper_output_symbology(): Print helpful text for 
   # the user
@@ -417,6 +425,7 @@ server <- function(input, output, session) {
     
     help_output
   })
+  
   
   helper_output_symbology <- shiny::reactive({
     
@@ -508,7 +517,7 @@ server <- function(input, output, session) {
                             thesis_all_pct), 
                        ~round(., 2)) %>%
       
-      # Add TTM18/thesis comparison columns
+      # Add thesis-TTM18 comparison columns
       dplyr::mutate(comp_r_sfp = thesis_r_sfp / ttm_sfp,
                     comp_m_sfp = thesis_m_sfp / ttm_sfp,
                     comp_all_sfp = thesis_all_sfp / ttm_sfp,
@@ -537,7 +546,8 @@ server <- function(input, output, session) {
     inputdata <- thisTTM()
     res <- CreateJenksColumn_b(inputdata,
                                vis_cols[[input$fill_column]], 
-                               input$fill_column, input$classIntervals_n)
+                               input$fill_column, 
+                               input$classIntervals_n)
     res
   })
   
@@ -556,7 +566,8 @@ server <- function(input, output, session) {
     originname <- as.character(originzip$nimi[1])
     
     # Format legend labels (Equal breaks classes). Remove [, ], (, and ). Also 
-    # add list dash. Create named vector for the origin zipcode legend entry
+    # add list dash. Create named vector for the origin zipcode legend entry.
+    # \U2012 is longdash.
     l_labels <- 
       gsub("(])|(\\()|(\\[)", "", levels(inputdata[, input$fill_column])) %>%
       gsub(",", " \U2012 ", .)
@@ -618,8 +629,8 @@ server <- function(input, output, session) {
       # Jenks classes colouring and labels. drop = FALSE is very important in
       # most of the cases of input$fill_column. Levels may end up appearing zero
       # times in the data, and that would get them erased from the legend and
-      # mix everything up.
-      scale_fill_brewer(palette = "RdYlGn",
+      # mix everything up. Get actual colouring from user in input$brewerpal
+      scale_fill_brewer(palette = input$brewerpal,
                         name = paste0(legendname, collapse = ""),
                         direction = -1,
                         labels = l_labels,
@@ -627,8 +638,8 @@ server <- function(input, output, session) {
                         drop = FALSE) +
       
       # Define map extent manually
-      coord_fixed(xlim = c(min(inputdata$lon) + 200, max(inputdata$lon) - 1200),
-                  ylim = c(min(inputdata$lat) + 600, max(inputdata$lat) - 600)) +
+      coord_fixed(xlim = c(min(inputdata$lon) + 1300, max(inputdata$lon) - 1300),
+                  ylim = c(min(inputdata$lat) + 1100, max(inputdata$lat) - 1100)) +
       
       # Scale bar and north arrow
       ggsn::scalebar(inputdata, 
@@ -885,7 +896,7 @@ ui <- shinyUI(
         textInput(
           inputId = "zipcode",
           label = "Enter an origin postal code",
-          value = "00100"), # Starting value Helsinki Keskusta - Etu-Toolo
+          value = "00100"), # Starting value Helsinki Keskusta - Etu-Töölö
         HTML("</div>"),
         
         actionButton(
@@ -902,7 +913,7 @@ ui <- shinyUI(
         selectInput(
           inputId = "fill_column",
           label = "Visualise data (equal interval)",
-          selected = "ttm_r_avg",
+          selected = "ttm18_m_avg",
           choices = list(
             `Travel Time Matrix 2018 private car data` = 
               c("ttm18_r_avg", "ttm18_m_avg", "ttm18_all_avg",
@@ -925,12 +936,30 @@ ui <- shinyUI(
         htmlOutput("sym_helper"),
         HTML("</div>"),
         
+        HTML("<div class='onoff-container'>",
+             "<div class='onoff-div'><b>Classes options</b><br>"),
+        HTML("<label class='control-label onoff-label' for='brewerpal'>Color scheme</label>"),
+        selectInput(
+          inputId = "brewerpal",
+          label = NULL,
+          selected = "RdYlGn",
+          choices = list(
+            `Regular color schemes` = 
+              c("Spectral", "RdYlGn", "RdGy"),
+            
+            `Color schemes for color vision deficiencies` = 
+              c("RdYlBu", "RdBu", "PuOr", "PRGn", "PiYG", "BrBG"))),
+        
+        HTML("<label class='control-label onoff-label' for='classIntervals_n'>Amount of classes</label>"),
         sliderInput(
           inputId = "classIntervals_n",
-          label = "Amount of classes",
+          label = NULL,
           min = 2, 
           max = 11, 
           value = 11),
+        
+        HTML("</div>",
+             "</div>"),
         HTML("</div>"),
         
         # Layer options: on-off switches

@@ -4,7 +4,7 @@
 
 # "Parking of private cars and spatial accessibility in Helsinki Capital Region"
 # by Sampo Vesanen
-# 19.7.2020
+# 26.9.2020
 
 
 
@@ -57,7 +57,7 @@ CreateJenksColumn_b <- function(inputDf, datacol, newcolname, classes_n = 11) {
     inputDf %>%
     dplyr::mutate(!!newcolname := cut(!!rlang::sym(datacol), 
                                       unique(round(classes$brks, 2)), 
-                                      include.lowest = T))
+                                      include.lowest = TRUE))
   return(result)
 }
 
@@ -77,7 +77,7 @@ AddLevelCounts <- function(thisDf, datacol, newcolname, classes_n,
   # Breaks are rounded to two decimal places
   interv_codes <- cut(thisDf[, datacol],
                       round(unique(intervals$brks), 2),
-                      include.lowest = T)
+                      include.lowest = TRUE)
   input_levels <- levels(thisDf[, newcolname])
   
   # Create level appearance count in this clunky way.
