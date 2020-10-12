@@ -60,8 +60,8 @@ waterpath <- "appdata/ua2012_water.shp"
 roadpath <- "appdata/mainroads.shp"
 
 # Thesis' processed data
-recordspath <- "appdata/pythonshinyrecords.csv"
-postal_path <- "appdata/pythonshinypostal.csv"
+recordspath <- "appdata/shinyrecords.csv"
+postal_path <- "appdata/shinypostal.csv"
 gridzipcodes <- "appdata/grid_for_r.csv"
 fst_postal_fp <- "TTM18_postal"
 
