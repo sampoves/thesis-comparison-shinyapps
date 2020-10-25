@@ -5,6 +5,8 @@ An application to compare Helsinki Region Travel Time Matrix 2018 and Sampo Vesa
 
 * [About this application](#about-this-application)
 * [Application features](#application-features)
+  * [User input (sidebar)](#user-input-sidebar)
+  * [Map output (main panel)](#map-output-main-panel)
 * [Known issues](#known-issues)
 * [Associated repositories](#associated-repositories)
   * [Primary repositories](#primary-repositories)
@@ -15,6 +17,20 @@ An application to compare Helsinki Region Travel Time Matrix 2018 and Sampo Vesa
 This repository contains the shinyapps.io deployment of this application: https://sampoves.shinyapps.io/comparison/
 
 ## Application features
+
+### User input (sidebar)
+
+#### Private car travel chain origin
+
+#### Symbology options
+
+#### Layer options
+
+### Map output (main panel)
+
+#### Overview
+
+#### Interactions
 
 ## Known issues
 
