@@ -16,6 +16,8 @@ An application to compare Helsinki Region Travel Time Matrix 2018 and Sampo Vesa
 
 This repository contains the shinyapps.io deployment of this application: https://sampoves.shinyapps.io/comparison/
 
+The thesis is available as PDF at the Digital Repository of the University of Helsinki: **http://urn.fi/URN:NBN:fi:hulib-202010304366**
+
 ## Application features
 
 ### User input (sidebar)
