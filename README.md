@@ -45,7 +45,7 @@ Please find the other GitHub repositories important to this thesis in the table 
 | Repository | Description | Web deployment |
 | --- | --- | --- |
 | https://github.com/sampoves/thesis-data-analysis | The thesis data analysis workflow, the main repository for all things programming in this thesis | See below |
-| https://github.com/sampoves/Masters-2020 | The Master's thesis in its original LaTeX format | Currently not available |
+| https://github.com/sampoves/Masters-2020 | The Master's thesis in its original LaTeX format | The Digital Repository of the University of Helsinki: **http://urn.fi/URN:NBN:fi:hulib-202010304366** |
 | https://github.com/sampoves/parking-in-helsinki-region | The web based survey application | Hosted by the author: **https://parking-survey.socialsawblade.fi** |
 | https://github.com/sampoves/thesis-analysis-shinyapps | shinyapps.io deployment of the survey data analysis and statistics application | shinyapps.io: **https://sampoves.shinyapps.io/analysis/** |
 | https://github.com/sampoves/thesis-visitors-shinyapps | shinyapps.io deployment of the visitors analysis application | shinyapps.io: **https://sampoves.shinyapps.io/visitors/** |
