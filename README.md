@@ -36,6 +36,8 @@ The thesis is available as PDF at the Digital Repository of the University of He
 
 ## Known issues
 
+* *Map elements*: As the user changes app settings, the output map legend elements swap places in a chaotic fashion.
+
 ## Associated repositories
 
 ### Primary repositories
