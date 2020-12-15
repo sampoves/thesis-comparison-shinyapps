@@ -2,10 +2,27 @@
 # Helsinki Region Travel Time comparison application
 # Helsinki Region Travel Time Matrix 2018 <--> My thesis survey results
 
-# 28.9.2020
+# 15.10.2020
 # Sampo Vesanen
 
 # Known issues:
+# - A late addition to the application is making sure all values have two
+#   decimal places. This is all good for the tooltip values and the values
+#   printed on the map proper. However, the legend scale is a bit tricky.
+#   Essential cut() function used in CreateEqualColumn() reduces decimal places
+#   and I don't know how to prevent this. As a consequence, I have to add the
+#   decimal places back to the legend with regex, resulting in situations where
+#   the largest value shown on map can be larger than the top value in the
+#   color scale. I don't think there are other caveats.
+# - .loadingdiv is bound by .col-sm-9, the mainPanel() content. For this
+#   reason, on first load the loading appears now on top of the screen. As
+#   the map is loaded, loading text moves to th center of the screen. I could
+#   not find a solution to this for the time being. This only appeared after
+#   update to R 4.0.0 and updating several libraries. Before, girafeOutput()
+#   did not need width and height, and the loading div was placed in the center
+#   from the start.
+# - Of minor importance: select#postal_label_choice does not scale with window 
+#   size
 # - Saarijarvi island in Espoo is not shown correctly when using the inland water 
 #   layer. We can't use the function ggspatial::geom_spatial_polygon() in 
 #   shinyapps.io because the platform does not like ggpspatial dependency lwgeom 
@@ -46,11 +63,11 @@ library(ggnewscale)
 library(classInt)
 library(sp)
 library(rlang)
-
+library(stringr)
 
 
 # App version
-app_v <- "0069.postal (28.9.2020)"
+app_v <- "0071.postal (15.10.2020)"
 
 # Data directories
 munspath <- "appdata/hcr_muns.shp"
@@ -132,7 +149,7 @@ postal <-
            colClasses = c(zipcode = "factor", kunta = "factor", 
                           geometry = "character"),
            stringsAsFactors = TRUE) %>%
-  dplyr::select(c(2, 3, 108))
+  dplyr::select(c(2, 3, 6, 108))
 
 # "postal" geometries are in well-known text format. Some processing is needed 
 # to utilise these polygons in R. readWKT() uses rgeos.
@@ -696,7 +713,7 @@ server <- function(input, output, session) {
     
     # Format legend labels (Equal breaks classes). Remove [, ], (, and ). Also 
     # add list dash. Create named vector for the origin zipcode legend entry.
-    # \U2012 is longdash.
+    # \U2012 is endash.
     l_labels <- 
       gsub("(])|(\\()|(\\[)", "", levels(inputdata[, input$fill_column])) %>%
       gsub(",", " \U2012 ", .)
@@ -734,6 +751,16 @@ server <- function(input, output, session) {
                                  l_labels, 
                                  locked_class_breaks_all())
     }
+    
+    # Add two decimal places to all label values. Do this by disassembling
+    # "l_labels" and determining which values need decimals added.
+    l_labels <- stringr::str_extract_all(l_labels, "\\(?[-0-9,.]+\\)?", simplify = TRUE) %>%
+      as.data.frame()
+    l_labels <- apply(l_labels, 1, function(x) {
+      paste(sprintf("%0.2f", as.numeric(x[1])), " \U2012 ",
+            sprintf("%0.2f", as.numeric(x[2])), " [", x[3], "]",
+            sep = "")
+    })
     
     # Origin id legend label
     o_label <- setNames("purple",
@@ -781,7 +808,7 @@ server <- function(input, output, session) {
                              comp_r_wtd, comp_m_wtd, comp_all_wtd,
                              comp_r_drivetime, comp_m_drivetime, comp_all_drivetime,
                              comp_r_pct, comp_m_pct, comp_all_pct))
-                   )) +
+        )) +
       
       # Equal interval classes colouring and labels. drop = FALSE is very 
       # important in most of the cases of input$fill_column. Levels may end up 
@@ -794,6 +821,17 @@ server <- function(input, output, session) {
                         labels = l_labels,
                         na.value = "darkgrey",
                         drop = FALSE) +
+      
+      #### Origin postal code area element and legend entry
+      # Plot origin YKR_ID, the starting position for TTM18
+      geom_polygon(data = originzip,
+                   aes(long, lat, group = group, color = nimi),
+                   fill = NA,
+                   size = 1.2) +
+      # Get a legend entry for origin ykr id
+      scale_color_manual(name = "Origin postal\ncode area",
+                         values = o_label,
+                         labels = names(o_label)) +
       
       # Define map extent manually
       coord_fixed(xlim = c(min(inputdata$lon) + 1500, max(inputdata$lon) - 1500),
@@ -809,7 +847,7 @@ server <- function(input, output, session) {
                      height = 0.01, 
                      transform = FALSE,
                      anchor = c(
-                       x = max(inputdata$lon) - 1000 , 
+                       x = max(inputdata$lon) - 1000, 
                        y = min(inputdata$lat) + 400)) +
       
       ggsn::north(inputdata, 
@@ -831,30 +869,34 @@ server <- function(input, output, session) {
     
     # Roads and water in case we want them mapped
     if(input$show_water == TRUE) {
-      g <- g + geom_polygon(data = water_f,
-                            aes(long, lat, group = group),
-                            color = alpha("blue", 0.9),
-                            fill = "lightblue",
-                            size = 0.4)
+      g <- g + ggspatial::geom_spatial_polygon(
+        data = water,
+        crs = 3067,
+        aes(long, lat, group = group),
+        color = alpha("blue", 0.9),
+        fill = "lightblue",
+        size = 0.4)
     }
     
     if(input$show_roads == TRUE) {
-      g <- g + geom_path(data = roads_f,
-                         aes(long, lat, group = group),
-                         color = "#757575",
-                         size = 0.9)
+      g <- g + geom_path(
+        data = roads_f,
+        aes(long, lat, group = group),
+        color = "#757575",
+        size = 0.9)
     }
     
     # Plot municipality boundaries on the map
     if(input$show_muns == TRUE) {
       
+      # Add boundaries of neighboring municipalities for visual reference
       g <- g + geom_polygon(data = othermuns_f,
                             aes(long, lat, group = group),   
                             color = alpha("black", 0.3), 
                             fill = "NA",
                             size = 0.8) +
         
-        # Municipality boundaries
+        # Study area municipality boundaries
         geom_polygon(data = muns_f,
                      aes(long, lat, group = group),   
                      color = alpha("black", 0.9), 
@@ -862,21 +904,7 @@ server <- function(input, output, session) {
                      size = 1.0)
     }
     
-    # ggnewscale makes it possible to map additional legends with same 
-    # properties, in this case a new scale_fill. 
-    g <- g + ggnewscale::new_scale_color() +
-      
-      # Plot origin YKR_ID, the starting position for TTM18
-      geom_polygon(data = originzip,
-                   aes(long, lat, group = group, color = nimi),
-                   fill = NA,
-                   size = 1.2) +
-      
-      # Get a legend entry for origin ykr id
-      scale_color_manual(name = "Origin postal\ncode area",
-                         values = o_label,
-                         labels = names(o_label))
-    
+    # Plot municipality subdivision boundaries on the map
     if(input$show_subdiv == TRUE) {
       
       # Municipality boundaries
@@ -890,17 +918,26 @@ server <- function(input, output, session) {
     # Plot walking center boundaries
     if(input$show_walk == TRUE) {
       
+      # ggnewscale makes it possible to map additional legends with same
+      # properties, in this case a new scale_color (origin postal code area 
+      # legend entry is already occupying the slot).
+      
       # New legend entry for walking center of Helsinki
       g <- g + ggnewscale::new_scale_color() +
         
         geom_polygon(data = walk_f,
                      aes(long, lat, color = label),
                      fill = NA,
+                     linetype = "longdash",
+                     key_glyph = "polygon",
                      size = 0.9) + 
         
         scale_color_manual(name = NULL,
                            values = setNames("#6b01ab", "walk"),
-                           labels = "Helsinki walking\ncenter (TTM18)")
+                           labels = "Helsinki walking\ncenter (TTM18)") + 
+        
+        # Modify legend symbol: rectangle to square by making the symbol larger
+        guides(colour = guide_legend(override.aes = list(size = 12)))
     }
     
     # Plot postal code area labels
@@ -921,25 +958,40 @@ server <- function(input, output, session) {
           dplyr::distinct(zipcode, .keep_all = TRUE) %>%
           dplyr::select(c(long, lat, label))
         
+        # Remove rows that have NAs in "label", otherwise they are printed on
+        # the map
+        this_zipcode_lbl <- this_zipcode_lbl[!is.na(this_zipcode_lbl$label), ]
+        
+        # We need to generate this annotation separately for "Current symbology"
+        # and "postal code areas" because we can't force two decimal places for
+        # postal codes.
+        g <- g + with(this_zipcode_lbl,
+                      annotate(geom = "label",
+                               x = long,
+                               y = lat,
+                               label = sprintf("%0.2f", label),
+                               label.size = NA,
+                               fill = alpha("white", 0.5),
+                               size = 4))
+        
       } else {
         # if "Postal codes", use the object "zipcode_lbl" produced in 2.7.
         this_zipcode_lbl <- zipcode_lbl
+        
+        # Add zipcode labels
+        g <- g + with(this_zipcode_lbl,
+                      annotate(geom = "label",
+                               x = long,
+                               y = lat,
+                               label = label,
+                               label.size = NA,
+                               fill = alpha("white", 0.5),
+                               size = 4))
       }
-      
-      # Add zipcode labels
-      g <- g + with(this_zipcode_lbl,
-                    annotate(geom = "label",
-                             x = long,
-                             y = lat,
-                             label = label,
-                             label.size = NA,
-                             fill = alpha("white", 0.5),
-                             size = 4))
     }
     
     # Plot postal code area labels
     if(input$show_muns_labels == TRUE) {
-      
       
       # Disable Kauniainen label on subdiv when muns labels visible
       if(input$show_subdiv_labels == TRUE) {
@@ -1237,7 +1289,9 @@ ui <- shinyUI(
              "Loading map view. Once finished, see <i class='icon info'></i> for more information.",
              "</div>"),
         
-        girafeOutput("researcharea"), 
+        girafeOutput("researcharea",	
+                     width = "100%",	
+                     height = "100%"),
         
         width = 9
       )
