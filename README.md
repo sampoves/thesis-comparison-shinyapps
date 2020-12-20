@@ -1,5 +1,6 @@
 # Helsinki Region Travel Time comparison application, the shinyapps.io deployment
-An application to compare Helsinki Region Travel Time Matrix 2018 and Sampo Vesanen's master thesis survey results.
+
+This data analysis application was developed for my University of Helsinki Master's thesis, *Parking private cars and spatial accessibility in Helsinki Capital Region – Parking time as a part of the total travel time*.
 
 ## Contents
 
@@ -14,9 +15,19 @@ An application to compare Helsinki Region Travel Time Matrix 2018 and Sampo Vesa
   
 ## About this application
 
-This repository contains the shinyapps.io deployment of this application: https://sampoves.shinyapps.io/comparison/
+In this Master's thesis, as one of the research questions, I set out to find if there are differences in door-to-door travel times in two datasets, the Helsinki Region Travel Time Matrix 2018 and the research survey dataset collected by me for this thesis.
 
-The thesis is available as PDF at the Digital Repository of the University of Helsinki: **http://urn.fi/URN:NBN:fi:hulib-202010304366**
+Presented in Salonen & Toivonen 2013, the door-to-door approach in travel time calculation includes all parts of a private car trip into account. Therefore, a trip in this research consists of:
+- Walking from the origin to one's car
+- Driving to destination
+- Searching for parking
+- Walking from one's parked car to the destination
+
+In Helsinki Region Travel Time Matrix 2018, the searching for parking segment has been a static value of 0.42 minutes everywhere in the dataset. Using the collected survey data, the travel time comparison application presented in this repository calculates a wide variety of different scenarios using Helsinki Region Travel Time Matrix 2018 data, the research survey data, and comparisons of these two datasets.
+
+**[The travel time comparison application is available for viewing at shinyapps.io](https://sampoves.shinyapps.io/comparison/)**.
+
+The thesis is available as PDF at the Digital Repository of the University of Helsinki: **http://urn.fi/URN:NBN:fi:hulib-202010304366**. See the section [Associated repositories](#associated-repositories) for all GitHub repositories associated with this thesis.
 
 ## Application features
 
